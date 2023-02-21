@@ -6,8 +6,14 @@ class Person extends HiveObject {
   @HiveField(0)
   final String name;
   @HiveField(1)
-  final int age;
+  final String gender;
+  @HiveField(2)
+  final int count;
 
-  Person({required this.name, required this.age});
+  Person({required this.name, required this.gender, required this.count});
+
+  factory Person.fromJson(Map data) {
+    return  Person(name: data["name"] , gender: data["gender"], count: data["count"]);
+  }
 }
 

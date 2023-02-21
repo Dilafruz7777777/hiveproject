@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hiveproject/person_model.dart';
+import 'package:http/http.dart' as http;
 
 void main() async {
   await Hive.initFlutter();
@@ -38,7 +41,6 @@ class _MyHomePageState extends State<MyHomePage> {
   final name = TextEditingController();
   final age = TextEditingController();
 
-
   void _incrementCounter(BuildContext context) {
     showDialog(
         context: context,
@@ -53,16 +55,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   controller: name,
                 ),
 
-                TextFormField(
-                  controller: age,
-                ),
+                // TextFormField(
+                //   controller: age,
+                // ),
               ],
             ),
             actions: [
               ElevatedButton(
-                  onPressed: () {
-                    box!.put(DateTime.now().toString(),
-                      Person(name: name.text, age: int.tryParse(age.text) ?? 0 ));
+                  onPressed: () async {
+                    var res = await http.get(
+                      Uri.parse("https://api.genderize.io/?name=${name.text}"),
+                    );
+                    Person newPerson = Person.fromJson(jsonDecode(res.body));
+                    box!.put(name.text, newPerson);
                     setState(() {});
                     Navigator.pop(context);
                   },
@@ -73,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   hiveInit() async {
-    box = await Hive.openBox('persons');
+    box = await Hive.openBox('newPerson');
   }
 
   @override
@@ -88,35 +93,34 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body:ListView.builder(
-        itemCount: box?.values.length ?? 0,
+      body: ListView.builder(
+          itemCount: box?.values.length ?? 0,
           itemBuilder: (context, index) {
-        return Container(
-          color: Colors.pinkAccent.withOpacity(0.3),
-          margin: EdgeInsets.only(bottom: 12),
-          padding: EdgeInsets.all(24),
-          child: Row(
-            children: [
-              Column(
+            return Container(
+              color: Colors.pinkAccent.withOpacity(0.3),
+              margin: EdgeInsets.only(bottom: 12),
+              padding: EdgeInsets.all(24),
+              child: Row(
                 children: [
-                  Text(box?.values.elementAt(index).name ?? ""),
-                  Text(box?.values.elementAt(index).age.toString() ?? "" ),
-
+                  Column(
+                    children: [
+                      Text(box?.values.elementAt(index).name ?? ""),
+                      Text(box?.values.elementAt(index).count.toString() ?? ""),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      box!.deleteAt(index);
+                      setState(() {});
+                    },
+                    icon: Icon(Icons.delete),
+                  )
                 ],
               ),
-              
-              IconButton(
-                onPressed: (){
-                  box!.deleteAt(index);
-                  setState(() {});
-                }, icon: Icon(Icons.delete),
-              )
-            ],
-          ),
-        );
-      }),
+            );
+          }),
       floatingActionButton: FloatingActionButton(
-        onPressed:() {
+        onPressed: () {
           // box?.deleteFromDisk();
           _incrementCounter(context);
         },

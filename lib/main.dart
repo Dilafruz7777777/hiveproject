@@ -3,11 +3,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:hiveproject/person_model.dart';
+import 'package:hiveproject/univer.dart' as u;
+import 'package:hiveproject/univer_model.dart' as m;
 import 'package:http/http.dart' as http;
 
 void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(PersonAdapter());
+  Hive.registerAdapter(m.UniverAdapter());
+  Hive.registerAdapter(m.UniverResponseAdapter());
+
+
   runApp(const MyApp());
 }
 
@@ -22,7 +28,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: u.Univer(),
     );
   }
 }
